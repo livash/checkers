@@ -13,12 +13,12 @@ class Board
   def show_board
     puts "black pieces are: <o>,     white pieces are [0]"
     puts "  | a    b    c    d    e    f    g    h  ".colorize( :color => :light_blue, :background => :yellow )
-    puts "  ________________________________________".colorize( :color => :light_blue, :background => :yellow )
+   # puts "  ________________________________________".colorize( :color => :light_blue, :background => :yellow )
     puts
     @board.each_with_index do |row, idx|
       row_view = row.map do |piece|
         if piece.nil?
-          '____'
+          '____'.colorize( :color => :green, :background => :green )
         else
           case piece.color
           when :black
@@ -29,7 +29,6 @@ class Board
             "#{piece.face}"
           end
         end
-        # (piece.face + '_' + piece.color.to_s)
       end
       puts "#{8 - idx}| #{row_view.join(' ')}"
       puts " |"
@@ -58,6 +57,8 @@ class Board
       return perform_jump(from_pos, to_pos)
     end
   end
+  
+  private
   
   def perform_slide(from_pos, to_pos) #returns boolean
     from_col, from_row = str_to_coord(from_pos)
@@ -90,10 +91,12 @@ class Board
     from_col, from_row = str_to_coord(from_pos)
     to_col, to_row = str_to_coord(to_pos)
     piece = board[from_row][from_col]
+    full_path, jump_touch_pos_path, jump_over_pos_path = piece.jump_path(from_pos, to_pos)
     
     if valid_jump?(from_pos, to_pos)
       board[to_row][to_col], board[from_row][from_col] = board[from_row][from_col], nil
       #remove pieces in the jump path
+      remove_pieces(jump_over_pos_path)
       puts "JUMP was performed"
       return true
     end
@@ -102,29 +105,66 @@ class Board
   end
   
   def valid_jump?(from_pos, to_pos)
+    to_col, to_row = str_to_coord(to_pos)
+  
+    #can not jump to an occupied position
+    puts "target tile is ocupied: #{tile_ocupied?(to_row, to_col)}"
+    return false if tile_ocupied?(to_row, to_col)
+    
+    #jump move is included in all_possible_moves for this piece
+    check_two = can_jump_to?(from_pos, to_pos)
+    puts "check_ two: #{check_two}"
+    
+    # check_three  there is no pieces in jump positions
+    check_three = jump_positions_clear?(from_pos, to_pos)
+    puts "check_three = #{check_three}"
+     
+    # check_four there are CheckerPieces in between jump positions
+    #check_four = jump_over_pos_path.none? { |(row,col)| board[row][col].nil? }
+    check_four = jump_over_positions_not_empty?(from_pos, to_pos)
+    
+#     #return a boolean
+  end
+  
+  def remove_pieces(array)
+    array.each do |(row,col)|
+        board[row][col] = nil
+    end
+  end
+  
+  def jump_over_positions_not_empty?(from_pos, to_pos)
+    from_col, from_row = str_to_coord(from_pos)
+    to_col, to_row = str_to_coord(to_pos)
+    piece = board[from_row][from_col]
+    full_path, jump_touch_pos_path, jump_over_pos_path = piece.jump_path(from_pos, to_pos)
+    
+    jump_over_pos_path.all? { |(row,col)| board[row][col].class == CheckerPiece && board[row][col].color != piece.color}
+  end
+  
+  def jump_positions_clear?(from_pos, to_pos)
+    from_col, from_row = str_to_coord(from_pos)
+    to_col, to_row = str_to_coord(to_pos)
+    piece = board[from_row][from_col]
+    
+    full_path, jump_touch_pos_path, jump_over_pos_path = piece.jump_path(from_pos, to_pos)
+    #remove from_position from <jump_touch_pos_path>
+    jump_touch_pos_path -= [[from_row, from_col]]
+    
+    jump_touch_pos_path.all? { |(row,col)| board[row][col].nil? }
+  end
+  
+  def can_jump_to?(from_pos, to_pos)
     from_col, from_row = str_to_coord(from_pos)
     to_col, to_row = str_to_coord(to_pos)
     piece = board[from_row][from_col]
     jump_leng = (from_col - to_col).abs
-    #can not jump to occupied position
-    return false if board[to_row][to_col].class == CheckerPiece
     
-    #jump move is included in all_possible_moves for this piece
-    check_two = piece.all_possible_moves_for_jump(from_pos, jump_leng).include?([to_row,to_col])
-    
-    # #check_three  there is no pieces in jump positions
-#     jump_path = piece.jump_path(from_pos, to_pos)
-#     check_three = 
-#     
-#     # check_four there are CheckerPieces in between jump positions
-#     
-#     check_four = 
-#     
-#     
-#     #return a boolean
+    piece.all_possible_moves_for_jump(from_pos, jump_leng).include?([to_row,to_col])
   end
-
-  private
+  
+  def tile_ocupied?(to_row, to_col)
+    board[to_row][to_col].class == CheckerPiece
+  end
   
   def generate_board
     new_board = []
@@ -144,7 +184,6 @@ class Board
 
     [0,2].each do |row_index|
       new_board[row_index].each_with_index do |piece, tile_index|
-        
         new_board[row_index][tile_index] = CheckerPiece.new(:black) unless tile_index % 2 == 0
       end
     end
@@ -155,13 +194,12 @@ class Board
     #row 1,3 white pieces
     [7,5].each do |row_index|
       new_board[row_index].each_with_index do |piece, tile_index|
-        
-        new_board[row_index][tile_index] = CheckerPiece.new(:white) unless tile_index % 2 == 0
+        new_board[row_index][tile_index] = CheckerPiece.new(:white) if tile_index % 2 == 0
       end
     end
     #row 2, white pieces
     new_board[6].each_with_index do |piece, tile_index|
-      new_board[6][tile_index] = CheckerPiece.new(:white) if tile_index % 2 == 0
+      new_board[6][tile_index] = CheckerPiece.new(:white) unless tile_index % 2 == 0
     end
     
     new_board
