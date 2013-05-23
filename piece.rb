@@ -2,7 +2,7 @@
 require_relative "conversion.rb"
 require_relative "board.rb"
 
-class Piece
+class CheckerPiece
   include Conversion
   
   MOVE_DIRECTIONS = [
@@ -17,37 +17,6 @@ class Piece
   def initialize(color)
     @color = color
     @face = "o"
-  end
-  
-  def perform_slide(board, from_pos, to_pos)
-    from_col, from_row = str_to_coord(from_pos)
-    to_col, to_row = str_to_coord(to_pos)
-    
-    #make move on the board
-    puts "valid_slide #{valid_slide?(board, from_pos, to_pos)}"
-    if valid_slide?(board, from_pos, to_pos)
-      board[[to_row, to_col]], board[[from_row, from_col]] = board[[from_row, from_col]], nil
-      puts "Slide was performed"
-    end
-    puts "Slide was not made"
-  end
-  
-  def perform_jump
-    
-  end
-  
- # private
-  
-  def valid_slide?(board, from_pos, to_pos) # takes board and two strings
-    #from_col, from_row = str_to_coord(from_pos)
-    to_col, to_row = str_to_coord(to_pos)
-    
-    #can not slide to occupied position
-    
-    return false if board[[to_row, to_col]].class == Piece
-    
-    #slide move is included in all_possible_moves for this piece
-    all_possible_moves_for(from_pos).include?([to_row,to_col]) 
   end
   
   def all_possible_moves_for(position)
