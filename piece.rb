@@ -19,17 +19,35 @@ class CheckerPiece
     @face = "o"
   end
   
-  def all_possible_moves_for(position)
+  def all_possible_moves_for_slide(position)
     col, row = str_to_coord(position)
     possible_pos_array = []
      MOVE_DIRECTIONS.each do |(drow, dcol)|
-       possible_pos_array << [row + drow, col + dcol] if board_has?(col + dcol, row + drow) 
+       new_row = row + drow
+       new_col = col + dcol
+       possible_pos_array << [new_row, new_col] if board_has?(new_row, new_col) 
      end
      
      possible_pos_array
   end
   
-  def board_has?(col, row)
+  def all_possible_moves_for_jump(position, jump_leng)
+    col, row = str_to_coord(position)
+    possible_pos_array = []
+    jump_leng_array = []
+    (2..jump_leng).each do |jump|
+      jump_leng_array << jump if jump % 2 == 0
+    end
+     MOVE_DIRECTIONS.each do |(drow, dcol)|
+       new_row = row + drow * jump_leng
+       new_col = col + dcol * jump_leng
+       possible_pos_array << [new_row, new_col] if board_has?(new_row, new_col) 
+     end
+     
+     possible_pos_array
+  end
+  
+  def board_has?(row, col)
     (0..7).include?(row) && (0..7).include?(col)
   end
   

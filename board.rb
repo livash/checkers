@@ -8,8 +8,6 @@ class Board
   attr_accessor :board
   def initialize
     @board = generate_board
-    # p board.length
-#     p board.first.length
   end
   
   def show_board
@@ -50,7 +48,6 @@ class Board
   end 
   
   def place_move_for(color, from_pos, to_pos) #return boolean
-    #use either perform_slide or perform_jump depending on the length of the move
     from_col, from_row = str_to_coord(from_pos)
     to_col, to_row = str_to_coord(to_pos)
     # calculate move length if ==1 then use perform_slide if == 2 then perform_jump 
@@ -67,13 +64,12 @@ class Board
     to_col, to_row = str_to_coord(to_pos)
     piece = board[from_row][from_col]
     
-    
     if valid_slide?(from_pos, to_pos)
       board[to_row][to_col], board[from_row][from_col] = board[from_row][from_col], nil
-      puts "Slide was performed"
+      puts "SLIDE was performed"
       return true
     end
-    puts "Slide was not made. Try again..."
+    puts "SLIDE was NOT made. Try again..."
     false
   end
   
@@ -86,12 +82,46 @@ class Board
     return false if board[to_row][to_col].class == CheckerPiece
     
     #slide move is included in all_possible_moves for this piece
-    piece.all_possible_moves_for(from_pos).include?([to_row,to_col]) 
+    piece.all_possible_moves_for_slide(from_pos).include?([to_row,to_col]) 
   end
   
-  
   def perform_jump(from_pos, to_pos) #returns boolean
-    raise NotImplementedError
+    #raise NotImplementedError
+    from_col, from_row = str_to_coord(from_pos)
+    to_col, to_row = str_to_coord(to_pos)
+    piece = board[from_row][from_col]
+    
+    if valid_jump?(from_pos, to_pos)
+      board[to_row][to_col], board[from_row][from_col] = board[from_row][from_col], nil
+      #remove pieces in the jump path
+      puts "JUMP was performed"
+      return true
+    end
+    puts "JUMP was NOT made. Try again..."
+    false
+  end
+  
+  def valid_jump?(from_pos, to_pos)
+    from_col, from_row = str_to_coord(from_pos)
+    to_col, to_row = str_to_coord(to_pos)
+    piece = board[from_row][from_col]
+    jump_leng = (from_col - to_col).abs
+    #can not jump to occupied position
+    return false if board[to_row][to_col].class == CheckerPiece
+    
+    #jump move is included in all_possible_moves for this piece
+    check_two = piece.all_possible_moves_for_jump(from_pos, jump_leng).include?([to_row,to_col])
+    
+    # #check_three  there is no pieces in jump positions
+#     jump_path = piece.jump_path(from_pos, to_pos)
+#     check_three = 
+#     
+#     # check_four there are CheckerPieces in between jump positions
+#     
+#     check_four = 
+#     
+#     
+#     #return a boolean
   end
 
   private
