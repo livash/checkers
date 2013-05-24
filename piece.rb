@@ -5,42 +5,53 @@ require_relative "board.rb"
 class CheckerPiece
   include Conversion
   
-  MOVE_DIRECTIONS = [
-    [-1, -1],
+  BLACK_MOVE_DIRECTIONS = [
     [-1, 1],
-    [1, -1],
     [1, 1]
   ]
+  WHITE_MOVE_DIRECTIONS = [
+    [-1, -1],
+    [1, -1]
+  ]
+  
   attr_accessor :color
   attr_reader :face
   
   def initialize(color)
-    @color = color
+    @color = color  # can be :black or :white
     @face = "o"
   end
   
   def all_possible_moves_for_slide(position)
+    case color
+    when :black
+      make_moves(position, BLACK_MOVE_DIRECTIONS)
+    when :white
+      make_moves(position, WHITE_MOVE_DIRECTIONS)
+    end
+    
+  end
+  
+  def make_moves(position, constant_array, jump_leng = 1)
     col, row = str_to_coord(position)
-    possible_pos_array = []
-     MOVE_DIRECTIONS.each do |(drow, dcol)|
-       new_row = row + drow
-       new_col = col + dcol
-       possible_pos_array << [new_row, new_col] if board_has?(new_row, new_col) 
+    moves_array = []
+    constant_array.each do |(drow, dcol)|
+       new_row = row + drow * jump_leng
+       new_col = col + dcol * jump_leng
+       moves_array << [new_row, new_col] if board_has?(new_row, new_col) 
      end
-     
-     possible_pos_array
+    
+     moves_array
   end
   
   def all_possible_moves_for_jump(position, jump_leng)
-    col, row = str_to_coord(position)
-    possible_pos_array = []
-     MOVE_DIRECTIONS.each do |(drow, dcol)|
-       new_row = row + drow * jump_leng
-       new_col = col + dcol * jump_leng
-       possible_pos_array << [new_row, new_col] if board_has?(new_row, new_col) 
-     end
-     
-     possible_pos_array
+    case color
+    when :black
+      make_moves(position, BLACK_MOVE_DIRECTIONS, jump_leng)
+    when :white
+      make_moves(position, WHITE_MOVE_DIRECTIONS, jump_leng)
+    end
+    
   end
   
   def jump_path(from_pos, to_pos)

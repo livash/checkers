@@ -11,6 +11,7 @@ class Board
   end
   
   def show_board
+    puts
     puts "black pieces are: <o>,     white pieces are [0]"
     puts "  | a    b    c    d    e    f    g    h  ".colorize( :color => :light_blue, :background => :yellow )
    # puts "  ________________________________________".colorize( :color => :light_blue, :background => :yellow )
@@ -49,6 +50,12 @@ class Board
   def place_move_for(color, from_pos, to_pos) #return boolean
     from_col, from_row = str_to_coord(from_pos)
     to_col, to_row = str_to_coord(to_pos)
+    piece = board[from_row][from_col]
+    
+    unless is_players_piece(color, piece)
+      puts "YOU CAN NOT MOVE OTHER PLAYER'S PIECE!!!"
+      return false
+    end
     # calculate move length if ==1 then use perform_slide if == 2 then perform_jump 
     move_length = (from_col - to_col).abs
     if move_length <= 1
@@ -59,6 +66,10 @@ class Board
   end
   
   private
+  
+  def is_players_piece(color, piece)
+    color == piece.color
+  end
   
   def perform_slide(from_pos, to_pos) #returns boolean
     from_col, from_row = str_to_coord(from_pos)
@@ -174,7 +185,7 @@ class Board
         new_board[row][col] = nil  #BlankPiece.new
       end
     end
-    puts "made the board"
+    #puts "made the board"
     
     add_pieces(new_board)
   end
